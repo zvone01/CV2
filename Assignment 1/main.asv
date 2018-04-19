@@ -16,18 +16,14 @@ for i=1:2: size(dinfo)
     [R, t] = ICP(source, target);
     
     moved = R*source + repmat(t, [1, size(source,2)]);
-% 
-%     figure()    
-%     scatter3(moved(1,:), moved(2,:), moved(3,:), 'bo');
-%     hold on
-%     scatter3(target(1,:), target(2,:), target(3,:), 'ro');
-%     hold off
-    
-    if i == 1
-     datacloud = target;
-    end
-    
-    datacloud = cat(2,datacloud,moved);
+
+    figure()    
+    scatter3(moved(1,:), moved(2,:), moved(3,:), 'bo');
+    hold on
+    scatter3(target(1,:), target(2,:), target(3,:), 'ro');
+    hold off
+
+    datacloud = cat(2,target,moved);
 end
 
 %% The ICP algorithm 
