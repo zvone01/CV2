@@ -39,7 +39,7 @@ hold on
 scatter3(target(1,:), target(2,:), target(3,:), 'ro');
 hold off
 
-[R, t] = ICP(source, target);
+[R, t] = ICP(source, target, 'random', 0.1);
 moved = R*source + repmat(t, [1, size(source,2)]);
 
 figure()    
