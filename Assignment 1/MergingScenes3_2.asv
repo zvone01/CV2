@@ -1,0 +1,65 @@
+
+files_to_take = 'pcd';
+%files_to_take = 'depth'; 
+dir_to_search = 'Data/data';
+
+if strcmp(files_to_take , 'depth')
+    txtpattern = fullfile(dir_to_search, '*_depth.png');
+    dinfo = dir(txtpattern);
+elseif strcmp(files_to_take , 'pcd')
+    txtpattern = fullfile(dir_to_search, '*.pcd');
+    dinfo = dir(txtpattern);
+end
+step_size =  1;
+num_of_images = 99;
+
+%reduce number of points to speedup process, take every points_reduction point
+points_reduction = 10;
+y=1;
+
+for i=1:step_size: 99  % size(dinfo)
+    
+   
+     if strcmp(files_to_take , 'depth')
+        source = PointCloud(imread(char(strcat("data/",dinfo(i).name))));
+    elseif strcmp(files_to_take , 'pcd')
+       source = readPcd (strcat("data/",dinfo(i).name));
+    end
+    source = source(1:10:end,:);
+    source = source';
+    
+    if i == 1
+     datacloud = source;
+    end
+    
+    if strcmp(files_to_take , 'depth')
+        target = PointCloud(imread(char(strcat("data/",dinfo(i+step_size).name))));
+    elseif strcmp(files_to_take , 'pcd')
+       target = readPcd (strcat("data/",dinfo(i+step_size).name));
+       %
+       cloud(any(any(isnan(cloud),3),2),:,:) = [];
+    end
+    target = target(1:10:end,:);
+    target = target';
+
+    [R, t] = ICP(datacloud, target,'all',0.5);
+    moved = R*target + repmat(t, [1, size(target,2)]);
+    
+    datacloud = cat(2,datacloud,moved);
+    
+     stacked{y} = moved; 
+    y = y+1;
+end
+
+
+figure()    
+scatter3(stacked{1}(1,:), stacked{1}(2,:), stacked{1}(3,:), 'r.');
+hold on
+scatter3(stacked{2}(1,:), stacked{2}(2,:), stacked{2}(3,:), 'g.');
+hold on
+scatter3(stacked{30}(1,:), stacked{30}(2,:), stacked{30}(3,:), 'b.');
+hold on
+scatter3(stacked{50}(1,:), stacked{50}(2,:), stacked{50}(3,:), 'y.');
+hold on
+scatter3(stacked{80}(1,:), stacked{80}(2,:), stacked{80}(3,:), 'c.');
+hold off
