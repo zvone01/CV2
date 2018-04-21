@@ -105,7 +105,7 @@ load("Data/data_mat1/data_mat1/0000000001_normal.mat")
 p2 = points';
 n2 = normal';
 
-% so far sampling by normals works only for uniform, not for random
+% sampling by normals works, but for random sampling it is infeasibly slow
 [R, t] = ICP(p1, p2, 'random', .8, 'normals', n1, n2, 6);
 
 %% Estimating Camera Pose
