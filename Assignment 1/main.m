@@ -18,7 +18,7 @@ for i=1: 10% size(dinfo)
     source = source';
 
 
-    [R, t] = ICP(source, target,'all',0.5);
+    [R, t] = ICP(source, target);
 
     moved = R*source + repmat(t, [1, size(source,2)]);
 
@@ -33,7 +33,7 @@ for i=1: 10% size(dinfo)
 end
 
 %% 3.1 b
-step_size =  4;
+step_size =  1;
 for i=1:step_size: 80  % size(dinfo)
 
     target = PointCloud(imread(char(strcat("data/",dinfo(i).name))));
@@ -47,7 +47,7 @@ for i=1:step_size: 80  % size(dinfo)
     source = source';
 
 
-    [R, t] = ICP(source, target,'all',0.5);
+    [R, t]  = ICP(source, target,'all',0.5);
     moved = R*source + repmat(t, [1, size(source,2)]);
 
 
@@ -76,7 +76,7 @@ hold off
 
 
 
-%% The ICP algorithm
+%% The ICP algorithm on toy data
 load('Data/source.mat');
 load('Data/target.mat');
 
@@ -85,7 +85,7 @@ hold on
 scatter3(target(1,:), target(2,:), target(3,:), 'ro');
 hold off
 
-[R, t] = ICP(source, target, 'random', .1 );
+[R, t, ~, ~]  = ICP(source, target); %, 'random', .1 );
 moved = R*source + repmat(t, [1, size(source,2)]);
 
 figure()
@@ -93,19 +93,5 @@ scatter3(moved(1,:), moved(2,:), moved(3,:), 'bo');
 hold on
 scatter3(target(1,:), target(2,:), target(3,:), 'ro');
 hold off
-
-%% Testing sampling by normals
-
-load("Data/data_mat1/data_mat1/0000000000.mat")
-load("Data/data_mat1/data_mat1/0000000000_normal.mat")
-p1 = points';
-n1 = normal';
-load("Data/data_mat1/data_mat1/0000000001.mat")
-load("Data/data_mat1/data_mat1/0000000001_normal.mat")
-p2 = points';
-n2 = normal';
-
-% sampling by normals works, but for random sampling it is infeasibly slow
-[R, t] = ICP(p1, p2, 'random', .8, 'normals', n1, n2, 6);
 
 %% Estimating Camera Pose
