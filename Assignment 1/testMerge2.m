@@ -10,13 +10,13 @@ elseif strcmp(files_to_take , 'pcd')
     txtpattern = fullfile(dir_to_search, '*.pcd');
     dinfo = dir(txtpattern);
 end
-step_size =  1;
+step_size =  2;
 num_of_images = 98;
 RMS_List = [];
 Transformation_List = [];
 
 %reduce number of points to speedup process, take every points_reduction point
-points_reduction = 1;
+points_reduction = 10;
 y=1;
 
 

@@ -49,45 +49,21 @@ for i=1:step_size: num_of_images
     source = source(1:points_reduction:end,:);
     source = source';
     
-    
     [R, t, RMS_new, ~] = ICP(source, target,'uniform',0.2);
     
-    
-    
-        RMS_List = cat(1,RMS_List, RMS_new);
-        moved = (R*source) + repmat(t, [1, size(source,2)]);
-        %moved=bsxfun(@plus, R*target,  t);
+    RMS_List = cat(1,RMS_List, RMS_new);
+    moved = (R*source) + repmat(t, [1, size(source,2)]);
 
+    datacloud = cat(2,datacloud,moved);
 
+    target = moved;
+    stacked{y} = moved; 
+    y = y+1;
 
-        datacloud = cat(2,datacloud,moved);
-
-        target = moved;
-        stacked{y} = moved; 
-        y = y+1;
-       
 end
 
 
  %%
- 
- test =  datacloud;%(:,1:10:end);
-%plot everything
+%plot 
 figure()
-fscatter3(test(1,:),test(2,:), test(3,:),test(3,:));
-%%
- figure()    
- scatter3(moved(1,:), moved(2,:), moved(3,:), 'r.');
- hold on
- scatter3(target(1,:), target(2,:), target(3,:), 'g.');
-  hold on
- scatter3(source(1,:), source(2,:), source(3,:), 'b.');
- 
- figure()    
- scatter3(target(1,:), target(2,:), target(3,:), 'g.');
-  hold on
- scatter3(source(1,:), source(2,:), source(3,:), 'b.');
- %%
- for j=1:2:97%size(stacked,2)
- fscatter3(stacked{j}(1,1:6:end),stacked{j}(2,1:6:end), stacked{j}(3,1:6:end),stacked{j}(2,1:6:end));
- end
+fscatter3(datacloud(1,:),datacloud(2,:), datacloud(3,:),datacloud(3,:));
