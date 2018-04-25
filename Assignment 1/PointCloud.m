@@ -10,7 +10,7 @@ cy = 259.01834898; %principal point in height
 depth = double(dataImage) * 0.001; %scale depth image from mm to meter.
 [cloud, ordered]= depth2cloud(depth, fx, fy,cx,cy); % convert from the depth image to cloud
 
-indices = find(cloud >2);
+indices = find(cloud > 1.5);
 cloud(indices) = NaN;  
 cloud(any(any(isnan(cloud),3),2),:,:) = [];
 

@@ -1,6 +1,6 @@
 
-%files_to_take = 'pcd';
-files_to_take = 'depth'; 
+files_to_take = 'pcd';
+%files_to_take = 'depth'; 
 %files_to_take = 'normals'; 
 dir_to_search = 'Data/data';
 
@@ -17,28 +17,29 @@ num_of_images = 98;
 points_reduction = 1;
 y=1;
 RMS_List = [];
-
 if strcmp(files_to_take , 'pcd') || strcmp(files_to_take , 'normals')
    step_size =  step_size * 2;
    num_of_images = num_of_images *2;  
 end
  
+
 if strcmp(files_to_take , 'depth')
     target = PointCloud(imread(char(strcat("data/",dinfo(1).name))));
-elseif strcmp(files_to_take , 'pcd') || strcmp(files_to_take , 'normals')
+elseif strcmp(files_to_take , 'pcd')
    target = readPcd (strcat("data/",dinfo(1).name));
    indices = find(target > 1.5);
    target(indices) = NaN;
    target(any(any(isnan(target),3),2),:,:) = [];
-   target = target(:,1:3);
+elseif strcmp(files_to_take , 'normals')
+   target = readPcd (strcat("data/",dinfo(1).name));
+   target(any(any(isnan(target),3),2),:,:) = [];
 end
 target = target(1:points_reduction:end,:);
 target = target';
 datacloud = target;
 
-
-for i=1:step_size: num_of_images  % size(dinfo)
-    
+for i=1:step_size: num_of_images 
+    i
     if strcmp(files_to_take , 'depth')
         source = PointCloud(imread(char(strcat("data/",dinfo(i).name))));
     elseif strcmp(files_to_take , 'pcd')
@@ -50,7 +51,6 @@ for i=1:step_size: num_of_images  % size(dinfo)
        indices = find(source > 1.5);
        source(indices) = NaN;  
        source(any(any(isnan(source),3),2),:,:) = [];
-       source = source(:,1:3);
     elseif strcmp(files_to_take , 'normals')
         dinfo(i+1).name
        source = readPcd (strcat("data/",dinfo(i+1).name));
@@ -59,45 +59,45 @@ for i=1:step_size: num_of_images  % size(dinfo)
     source = source(1:points_reduction:end,:);
     source = source';
     
-    [R, t, RMS_new, ~] = ICP(source , datacloud, 'uniform',0.2);
-    RMS_List = cat(1,RMS_List, RMS_new);
     
-    if strcmp(files_to_take , 'normals')
-        dinfo(i+step_size).name
-       source = readPcd (strcat("data/",dinfo(i+step_size).name));
-       indices = find(source > 1.5);
-       source(indices) = NaN;
-       source(any(any(isnan(source),3),2),:,:) = [];
-       source = source(1:points_reduction:end,:);
-       source = source';
-    end
+    [R, t, RMS_new, ~] = ICP(source, target,'uniform',0.2);
     
-    moved = R*source + repmat(t, [1, size(source,2)]);
-    datacloud = cat(2,datacloud,source);
     
-end
-%%
+    
+        RMS_List = cat(1,RMS_List, RMS_new);
+        moved = (R*source) + repmat(t, [1, size(source,2)]);
+        %moved=bsxfun(@plus, R*target,  t);
 
+
+
+        datacloud = cat(2,datacloud,moved);
+
+        target = moved;
+        stacked{y} = moved; 
+        y = y+1;
+        y
+end
+
+
+ %%
+ 
+ test =  datacloud;%(:,1:10:end);
 %plot everything
 figure()
-fscatter3(datacloud(1,:),datacloud(2,:), datacloud(3,:),datacloud(3,:));
-
+fscatter3(test(1,:),test(2,:), test(3,:),test(3,:));
 %%
-%%
-i1 = 2;
-i2 = 3;
-i3 = 50;
-i4 = 20;
-i5 =21;
-%plot couple of pointclouds
-figure()    
-scatter3(stacked{i1}(1,:), stacked{i1}(2,:), stacked{i1}(3,:), 'r.');
-hold on
-scatter3(stacked{i2}(1,:), stacked{i2}(2,:), stacked{i2}(3,:), 'g.');
-hold on
-scatter3(stacked{i3}(1,:), stacked{i3}(2,:), stacked{i3}(3,:), 'b.');
-hold on
-scatter3(stacked{i4}(1,:), stacked{i4}(2,:), stacked{i4}(3,:), 'y.');
-hold on
-scatter3(stacked{i5}(1,:), stacked{i5}(2,:), stacked{i5}(3,:), 'c.');
-hold off
+ figure()    
+ scatter3(moved(1,:), moved(2,:), moved(3,:), 'r.');
+ hold on
+ scatter3(target(1,:), target(2,:), target(3,:), 'g.');
+  hold on
+ scatter3(source(1,:), source(2,:), source(3,:), 'b.');
+ 
+ figure()    
+ scatter3(target(1,:), target(2,:), target(3,:), 'g.');
+  hold on
+ scatter3(source(1,:), source(2,:), source(3,:), 'b.');
+ %%
+ for j=1:2:97%size(stacked,2)
+ fscatter3(stacked{j}(1,1:6:end),stacked{j}(2,1:6:end), stacked{j}(3,1:6:end),stacked{j}(2,1:6:end));
+ end
