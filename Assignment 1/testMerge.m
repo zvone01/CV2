@@ -1,13 +1,12 @@
 
 %files_to_take = 'pcd';
 files_to_take = 'depth'; 
-%files_to_take = 'normals'; 
 dir_to_search = 'Data/data';
 
 if strcmp(files_to_take , 'depth')
     txtpattern = fullfile(dir_to_search, '*_depth.png');
     dinfo = dir(txtpattern);
-elseif strcmp(files_to_take , 'pcd') || strcmp(files_to_take , 'normals')
+elseif strcmp(files_to_take , 'pcd') 
     txtpattern = fullfile(dir_to_search, '*.pcd');
     dinfo = dir(txtpattern);
 end
@@ -17,7 +16,7 @@ num_of_images = 98;
 points_reduction = 1;
 y=1;
 
-if strcmp(files_to_take , 'pcd') || strcmp(files_to_take , 'normals')
+if strcmp(files_to_take , 'pcd')
    step_size =  step_size * 2;
    num_of_images = num_of_images *2;  
 end
@@ -31,9 +30,6 @@ elseif strcmp(files_to_take , 'pcd')
    target(indices) = NaN;
    target(any(any(isnan(target),3),2),:,:) = [];
    target = target(:,1:3);
-elseif strcmp(files_to_take , 'normals')
-   target = readPcd (strcat("data/",dinfo(1).name));
-   target(any(any(isnan(target),3),2),:,:) = [];
 end
 target = target(1:points_reduction:end,:);
 target = target';
@@ -55,10 +51,6 @@ for i=1:step_size: num_of_images
        source(indices) = NaN;  
        source(any(any(isnan(source),3),2),:,:) = [];
        source = source(:,1:3);
-    elseif strcmp(files_to_take , 'normals')
-        dinfo(i+1).name
-       source = readPcd (strcat("data/",dinfo(i+1).name));
-       source(any(any(isnan(source),3),2),:,:) = [];
     end
     source = source(1:points_reduction:end,:);
     source = source';
@@ -71,10 +63,6 @@ for i=1:step_size: num_of_images
        target(indices) = NaN;
        target(any(any(isnan(target),3),2),:,:) = [];
        target = target(:,1:3);
-    elseif strcmp(files_to_take , 'normals')
-        dinfo(i +step_size+1).name
-       target = readPcd (strcat("data/",dinfo(i +step_size+1).name));
-       target(any(any(isnan(target),3),2),:,:) = [];
     end
     target = target(1:points_reduction:end,:);
     target = target';
