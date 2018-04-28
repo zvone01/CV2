@@ -1,3 +1,7 @@
+function testing_optimised_ICP()
+
+disp(["testing optimisations of ICP, this can take over an hour"])
+
 % we test on the transformation from the first to the second point cloud
 dir_to_search = 'Data/data';
 txtpattern = fullfile(dir_to_search, '*_depth.png');
@@ -44,4 +48,5 @@ for eps = [0, .01]
             end
         end
     end
+end
 end
