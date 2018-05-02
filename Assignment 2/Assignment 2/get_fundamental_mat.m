@@ -1,17 +1,49 @@
-function F = get_fundamental_mat(im1, im2)
+function F = get_fundamental_mat(im1, im2, varargin)
+
+% set various booleans
+norm = false;
+ransac = false;
+show = false;
+if any(strcmp(varargin, 'norm'))
+    norm = true;
+end
+if any(strcmp(varargin, 'ransac'))
+    ransac = true;
+end
+if any(strcmp(varargin, 'show'))
+    show = true;
+end
 
 % retrieve point correspondences by evaluating SIFT features
 correspondences = keypoint_matching(im1, im2);
 
-% perform normalisation yes or no, compareresults to see its influence
+% perform normalisation yes or no
+if norm
+    [c, T] = normalise(correspondences);
+else
+    c = correspondences;
+end
 
-% perform RANSAC to get best fundamental mat
-F = eight_point_RANSAC(correspondences);
+% perform RANSAC yes or no
+if ransac
+    F = eight_point_RANSAC(c);
+else
+    F = eight_point_algorithm(c);
+end
 
-% draw epipolar lines
-draw_epipolar_lines(im1, im2, correspondences, F, 4);
+% denormalise
+if norm
+    F = T(:,:,2)'*F*T(:,:,1);
+end
 
-% if the epipolar constraint is satisfied, this would be 0
+if show
+    % draw epipolar lines
+    draw_epipolar_lines(im1, im2, correspondences, F, 4);
+    
+    % check how well the epipolar constraint is met
+    err = trace(correspondences(:,:,1)' * F * correspondences(:,:,2));
+    disp("deviation from epipolar constraint: "+num2str(err))  
+end
 
 end
 
@@ -22,7 +54,7 @@ im_width = size(im2, 2);
 idx = randi(size(c,2), 1, n);
 
 % epipolar line in image 2 for a point in image 1
-l = F * cat(1, c(:,idx,1), ones(1, n));
+l = F * c(:,idx,1);
 
 % determine points on the left and right of image 2 to draw a blue line
 % between
@@ -32,6 +64,7 @@ xa = im_width*ones(1, n);
 ya = (-l(3, :) - l(1,:).*xa)./l(2,:);
 
 % show
+figure()
 subplot(1,2,1), imshow(im1);
 hold on
 plot(c(1,:,1), c(2,:,1), 'rx');
@@ -44,5 +77,4 @@ for i = 1 : n
     plot([0 im_width], [y0(i) ya(i)], 'b-');
 end
 hold off
-
 end
