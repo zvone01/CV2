@@ -1,10 +1,10 @@
-function best_Fmat = eight_point_RANSAC(data)
+function best_Fmat = eight_point_RANSAC(data, s)
 t = .25; % threshold
 
 bestScore = 0; % initialise 
 for i = 1 : 300 % max_iter
     % determine F on 8 randomly drawn point-correspondences
-    F = eight_point_algorithm(data);
+    F = eight_point_algorithm(data, s);
     
     % check whether F is a 'good guess' by counting inliers
     % determine sampson distances by matrix multiplication

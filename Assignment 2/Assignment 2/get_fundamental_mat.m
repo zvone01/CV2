@@ -1,4 +1,6 @@
 function F = get_fundamental_mat(im1, im2, varargin)
+% hyperparameters
+s = 20;
 
 % set various booleans
 norm = false;
@@ -34,9 +36,9 @@ end
 
 % perform RANSAC yes or no
 if ransac
-    F = eight_point_RANSAC(c);
+    F = eight_point_RANSAC(c, s);
 else
-    F = eight_point_algorithm(c);
+    F = eight_point_algorithm(c, s);
 end
 
 % denormalise
@@ -49,8 +51,8 @@ if show
     draw_epipolar_lines(im1, im2, correspondences, F, 4);
     
     % check how well the epipolar constraint is met
-    % err = trace(correspondences(:,:,1)' * F * correspondences(:,:,2));
-    % disp("deviation from epipolar constraint: "+num2str(err))  
+    err = trace(correspondences(:,:,1)' * F * correspondences(:,:,2));
+    disp("deviation from epipolar constraint: "+num2str(err))  
 end
 
 end
@@ -60,9 +62,10 @@ im_width = size(im2, 2);
 
 % pick random point to draw epipolar lines of
 idx = randi(size(c,2), 1, n);
-c_b = c(:,idx,:)
+c_b = c(:,idx,:);
 
-c_b(:,:,1)'*F*c_b(:,:,2)
+% % epipolar constraint
+% trace(c_b(:,:,1)'*F*c_b(:,:,2));
 
 % epipolar line in image 2 for a point in image 1
 l2 = F * c_b(:,:,1);
@@ -83,17 +86,17 @@ figure()
 subplot(1,2,1), imshow(im1);
 hold on
 plot(c(1,:,1), c(2,:,1), 'rx');
-plot(c(1,idx,1), c(2,idx,1), 'bx');
+plot(c(1,idx,1), c(2,idx,1), 'wo');
 for i = 1 : n
-    plot([0 im_width], [y01(i) ya1(i)], 'b-');
+    plot([0 im_width], [y01(i) ya1(i)], 'w-');
 end
 hold off
 subplot(1,2,2), imshow(im2);
 hold on
 plot(c(1,:,2), c(2,:,2), 'rx');
-plot(c(1,idx,2), c(2,idx,2), 'bx');
+plot(c(1,idx,2), c(2,idx,2), 'wo');
 for i = 1 : n
-    plot([0 im_width], [y02(i) ya2(i)], 'b-');
+    plot([0 im_width], [y02(i) ya2(i)], 'w-');
 end
 hold off
 

@@ -1,8 +1,7 @@
-function F = eight_point_algorithm(data)
+function F = eight_point_algorithm(data, s)
 % pick eight random point-correspondences that will determine this
 % 'guess' of F
 N = size(data, 2); % amount of point correspondences
-s = 8;
 randomIndices = randperm(N, s);
 
 x1 = data(1, randomIndices, 1)';
@@ -12,7 +11,6 @@ y2 = data(2, randomIndices, 2)';
 
 % determine matrix A from point correspondences
 A = [ x1.*x2 x1.*y2 x1 y1.*x2 y1.*y2 y1 x2 y2 ones(s,1) ]; % values are 10e+5, linearly scale down?
-size(A)
 
 % elements of the fundamental matrix can be found on the least eigenvec
 % of A^T*A
