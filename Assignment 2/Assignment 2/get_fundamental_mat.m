@@ -1,4 +1,4 @@
-function F = get_fundamental_mat(im1, im2, varargin)
+function [F, correspondences] = get_fundamental_mat(im1, im2, varargin)
 % hyperparameters
 s = 20;
 
@@ -48,7 +48,7 @@ end
 
 if show
     % draw epipolar lines
-    draw_epipolar_lines(im1, im2, correspondences, F, 4);
+    draw_epipolar_lines(im1, im2, correspondences, F, 40);
     
     % check how well the epipolar constraint is met
     err = trace(correspondences(:,:,1)' * F * correspondences(:,:,2));
