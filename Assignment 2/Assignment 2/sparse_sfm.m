@@ -6,15 +6,15 @@ function [motion, shape] = sparse_sfm(pvm)
 %   g h NaN ]
 
 % toy data
-pvm = rand(10, 5);
-%pvm(2, 2) = NaN;
-pvm(9:10, 1) = NaN;
-pvm(9:10, 5) = NaN;
-pvm(1:2, 3) = NaN;
-pvm(1:2, 5) = NaN;
+% pvm = rand(10, 5);
+% %pvm(2, 2) = NaN;
+% pvm(9:10, 1) = NaN;
+% pvm(9:10, 5) = NaN;
+% pvm(1:2, 3) = NaN;
+% pvm(1:2, 5) = NaN;
 
 % pad pvm with NaNs at the right and at the bottom
-pvm = padarray(pvm, [ 1 1 ], NaN, 'post')
+pvm = padarray(pvm, [ 1 1 ], NaN, 'post');
 
 % initialise variables
 total_pointcloud = 0;
@@ -82,15 +82,15 @@ function total_pointcloud = process_dense_mat(dense_mat, point_cloud, idx)
     [~, sub_pointcloud] = dense_sfm(dense_mat);
     
     % add 3D points to the total cloud
-    if total_pointcloud == 0
+    if point_cloud == 0
         total_pointcloud = sub_pointcloud;
     else
-        total_pointcloud = merge_cloud(total_pointcloud, sub_pointcloud, idx)
+        total_pointcloud = merge_cloud(point_cloud, sub_pointcloud, idx)
     end
 
 end    
 
-function [motion, shape] = dense_sfm(pvm)
+function [motion, shape] = dense_sfm(PointViewMatrix)
 % mean of each row
 PointViewMatrix(1:2:end,:) = bsxfun(@minus, PointViewMatrix(1:2:end,:), mean(PointViewMatrix(1:2:end,:), 2));
 PointViewMatrix(2:2:end,:) = bsxfun(@minus, PointViewMatrix(2:2:end,:), mean(PointViewMatrix(2:2:end,:), 2));

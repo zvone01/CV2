@@ -1,5 +1,5 @@
 function [PointViewMatrix Xs Ys] = get_pointview_mat(dir_to_search)
-   
+
     txtpattern = fullfile(dir_to_search, '*.png');
     dinfo = dir(txtpattern);
 
@@ -11,31 +11,34 @@ function [PointViewMatrix Xs Ys] = get_pointview_mat(dir_to_search)
         %get image
         im1 = im2single(imread(char(strcat(dir_to_search,dinfo(i).name))));
         im2 = im2single(imread(char(strcat(dir_to_search,dinfo(i+1).name))));
-
+        
         %compute fundemental matrix and get correspondences
         [F,c] = get_fundamental_mat(im1, im2, 'norm',  'ransac');
         
-        %if first iteration add automaticly
+       [C,ia,ic]= unique(c(1:2,:,1)','rows','stable');
+       c1 = C';
+       c2=c(1:2,ia',2);
+       %if first iteration add automaticly
          if(i == 1)
-            Xs = c(1,:,1);
-            Ys = c(2,:,1); 
+            Xs = c1(1,:);
+            Ys = c1(2,:); 
          end
          %loop trought all correspondences
-         for a=1:size(c(1,:,1),2)
+         for a=1:size(c1(1,:),2)
             %check for x
-             [ex p] = ismember(c(1,a,1),Xs(i,:));
+             [ex p] = ismember(c1(1,a),Xs(i,:));
             
              %check for y match on x position
-            if ex && c(2,a,1) == Ys(i,p)
-               Xs(i+1,p) = c(1,a,2);
-               Ys(i+1,p) = c(2,a,2);
+            if ex && c1(2,a) == Ys(i,p)
+               Xs(i+1,p) = c2(1,a);
+               Ys(i+1,p) = c2(2,a);
             else
                %add new point
-               Xs(i,end +1) = c(1,a,1);
-               Ys(i,end +1) = c(2,a,1);
+               Xs(i,end +1) = c1(1,a);
+               Ys(i,end +1) = c1(2,a);
                  
-               Xs(i+1,end) = c(1,a,2);
-               Ys(i+1,end) = c(2,a,2);
+               Xs(i+1,end) = c2(1,a);
+               Ys(i+1,end) = c2(2,a);
             end
              
          end
