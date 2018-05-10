@@ -1,0 +1,37 @@
+function [motion, shape] = sfm (PointViewMatrix)
+
+
+dense_point = [];
+for i=1:2:size(PointViewMatrix,1)
+    counter = 0;
+    for j=1: size(PointViewMatrix,2)
+        if(~IsNan(PointViewMatrix(i,j)))
+            counter = counter +1;
+        else
+            counter = 0;
+       end
+        
+        if(counter > 6 && IsNan(PointViewMatrix(i,j)))
+            dp = PointViewMatrix(i,counter-j+1: j -1);
+            
+        end
+
+    end
+
+end
+
+    function nesto =
+
+function shape = sfm_caclulation(pvm)
+
+% mean of each row
+pvmpvm(1:2:end,:) = bsxfun(@minus, pvm(1:2:end,:), mean(pvm(1:2:end,:), 2));
+pvm(2:2:end,:) = bsxfun(@minus, pvm(2:2:end,:), mean(pvm(2:2:end,:), 2));
+
+%compute svd
+[U W V] = svd(pvm);
+
+% compute motion and shape
+%motion = U(:, 1:3)*sqrt(W(1:3, 1:3)); 
+shape = sqrt(W(1:3, 1:3))*V(:, 1:3)';
+end
