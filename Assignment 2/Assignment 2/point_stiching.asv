@@ -1,9 +1,7 @@
 function point_cloud = point_stiching(point_cloud,dense_point, index)
 
     [~, shape] = sfm_compute(dense_point);
-    
-    target_size = size(point_cloud(:,index:end),2);
-    [d,Z,transform] = procrustes(point_cloud(:,index:end),shape(:,1:target_size));
+    [d,Z,transform] = procrustes(point_cloud(index:end,end-index:end),shape(1:index,1:index));
     c = transform.c;
     T = transform.T;
     shapeT = shape*T + repmat(c, [1, size(shape,2)]);
