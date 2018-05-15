@@ -37,9 +37,9 @@ while size(pvm, 1) > 0 && size(pvm, 2) > 0
     end    
     dense_mat = pvm(1 : height-1, 1 : init_width-1);
     %if all(size(dense_mat) > [6, 6] )
-     if (idx < (size(total_pointcloud, 2) - 6) || total_pointcloud == 0 ) && all(size(dense_mat) >= [4, 3])% make sure procrustes has overlap of at least 3
+     if (idx < (size(total_pointcloud, 2) - 6) || total_pointcloud == 0 ) && all(size(dense_mat) > [4, 3])% make sure procrustes has overlap of at least 3
         total_pointcloud = point_stiching(dense_mat, total_pointcloud, idx);
-     end
+    end
     
     % find the submat
     % [ a b ;
@@ -52,7 +52,7 @@ while size(pvm, 1) > 0 && size(pvm, 2) > 0
     if height ~= init_height && width ~= init_width % if this submat hasnt already been found above
         dense_mat = pvm(1 : init_height-1, 1 : width-1);
         %if all(size(dense_mat) > [6, 6] )
-        if (idx < (size(total_pointcloud, 2) - 6) || total_pointcloud == 0 ) && all(size(dense_mat) >= [4, 3])
+        if (idx < (size(total_pointcloud, 2) - 6) || total_pointcloud == 0 ) && all(size(dense_mat) > [4, 3])
             total_pointcloud = point_stiching(dense_mat, total_pointcloud, idx);
         end
     end
@@ -76,12 +76,6 @@ while size(pvm, 1) > 0 && size(pvm, 2) > 0
         n_remove_col = min(squeeze(find(~isnan(pvm(height, :)))));
     else
         n_remove_col = min(squeeze(find(isnan(pvm(height, :)))));
-    end
-    if(isempty(n_remove_row))
-        n_remove_row  = 2;
-    end
-    if(isempty(n_remove_col))
-        n_remove_col = 2;
     end
     pvm = pvm( n_remove_row : size(pvm, 1) , n_remove_col : size(pvm, 2) );
     idx = idx + n_remove_col - 1;
