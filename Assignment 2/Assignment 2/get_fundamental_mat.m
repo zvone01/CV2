@@ -21,12 +21,6 @@ end
 % retrieve point correspondences by evaluating SIFT features
 correspondences = keypoint_matching(im1, im2);
 
-% data to check
-% correspondences = zeros(3, 8, 2);
-% size(correspondences)
-% correspondences(:,:,1) = [ 335 124 1 ; 320 194 1 ; 301 307 1 ; 168 78  1 ; 131 278 1 ; 480 177 1 ; 346 460 1 ; 241 426 1 ]';
-% correspondences(:,:,2) = [ 335 123 1 ; 322 191 1 ; 305 305 1 ; 163 77  1 ; 131 278 1 ; 478 174 1 ; 347 462 1 ; 241 425 1 ]';
-
 % perform normalisation yes or no
 if norm
     [c, T] = normalise(correspondences);

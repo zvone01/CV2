@@ -13,7 +13,8 @@ function [PointViewMatrix Xs Ys] = get_pointview_mat(dir_to_search)
         im2 = im2single(imread(char(strcat(dir_to_search,dinfo(i+1).name))));
         
         %compute fundemental matrix and get correspondences
-        [F,c] = get_fundamental_mat(im1, im2, 'norm',  'ransac');
+        %[F,c] = get_fundamental_mat(im1, im2, 'norm',  'ransac');
+        c = keypoint_matching(im1, im2);
         
        [C,ia,ic]= unique(c(1:2,:,1)','rows','stable');
        c1 = C';
