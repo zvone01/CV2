@@ -11,9 +11,9 @@ function PointViewMatrix = get_pointview_mat(dir_to_search)
         im2 = im2single(imread(char(strcat(dir_to_search,dinfo(i+1).name))));
         
         % get corresponding points
-        c = keypoint_matching(im1, im2);
-        
-        % c = filter by sampson distance(c)
+        %c = keypoint_matching(im1, im2);
+        [F c] = get_fundamental_mat(im1, im2, 'ransac');
+         c = filter_by_sampson_distance(c,F);
         
         % remove double correspondences
         [C, ia, ic]= unique(c(1:2,:,1)','rows','stable');
