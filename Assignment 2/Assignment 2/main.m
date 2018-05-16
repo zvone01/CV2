@@ -11,7 +11,7 @@ F = get_fundamental_mat(im1, im2, 'norm', 'show');
 F = get_fundamental_mat(im1, im2, 'norm', 'show', 'ransac');
 
 %% construct the pointview matrix from the frames using SIFT
-%pvm_sparse = get_pointview_mat('Data/House/House/');
+pvm_sparse = get_pointview_mat('Data/House/House/');
 
 ts = [3, 8, -3, -8];
 

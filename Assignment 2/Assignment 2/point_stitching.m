@@ -3,9 +3,9 @@ function total_pointcloud = point_stitching(total_pointcloud, dense_submat, idx)
     % we need at least 3 points in 2 frames to construct a 3D pointcloud
     if all(size(dense_submat) >= [4, 3])
         % get 3D points from the dense submatrix
-        [~, add_pointcloud] = dense_sfm(dense_submat);
-
-        %if (idx < (size(total_pointcloud, 2) - 6) || total_pointcloud == 0 ) && all(size(dense_mat) >= [4, 3])
+        [motion, shape] = dense_sfm(dense_submat);
+        add_pointcloud = remove_affine_ambiguity(motion, shape);
+        %add_pointcloud = shape;
 
         % add 3D points to the total cloud
         if total_pointcloud == 0
@@ -20,8 +20,9 @@ function total_pointcloud = point_stitching(total_pointcloud, dense_submat, idx)
             [~, ~, transform] = procrustes(target, source);
             c = transform.c; % translation
             T = transform.T; % rotation
+            b = transform.b; % scaling
                         
-            add_pointcloud = add_pointcloud*T + c;
+            add_pointcloud = b*add_pointcloud*T + c;
             
             % add all (or only points not-yet-present? whatabout
             % interpolation?)

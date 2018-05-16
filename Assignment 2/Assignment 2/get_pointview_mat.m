@@ -13,6 +13,8 @@ function PointViewMatrix = get_pointview_mat(dir_to_search)
         % get corresponding points
         c = keypoint_matching(im1, im2);
         
+        % c = filter by sampson distance(c)
+        
         % remove double correspondences
         [C, ia, ic]= unique(c(1:2,:,1)','rows','stable');
         c1 = C';
