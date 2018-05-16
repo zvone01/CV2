@@ -8,5 +8,5 @@ function show_pointcloud(pc)
     trisurf(tri, x, y, z);
 
     figure()
-    plot3( x, y, z, 'ko');
+    plot3( x, y, z, 'k.');
 end

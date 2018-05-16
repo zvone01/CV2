@@ -54,9 +54,49 @@ function PointViewMatrix = get_pointview_mat(dir_to_search)
     %Xs21 Xs22 ...
     %Ys21 Ys22 ...
     %...  ...
-    
+
     PointViewMatrix = zeros(size(Xs,1)*2,size(Xs,2)); 
     PointViewMatrix(1:2:end) = Xs;
     PointViewMatrix(2:2:end) = Ys;
     PointViewMatrix(PointViewMatrix==0) = NaN;
+    
+    %Test to remove outliers
+    %remove_otliers(PointViewMatrix)
+    
+end
+
+
+function pvm = remove_otliers(PointViewMatrix)
+
+    for frame=1:2:size(PointViewMatrix,1)
+        min_matrix = zeros(1,size(PointViewMatrix(~isnan(PointViewMatrix(frame,:))),2)); 
+
+        for i=1:size(PointViewMatrix,2)
+            x1 = PointViewMatrix(frame,i);
+            y1 = PointViewMatrix(frame+1,i);
+            if(~isnan(x1))
+             min = 0;
+             for j=1:size(PointViewMatrix,2)
+                
+                x2 = PointViewMatrix(frame,j);
+                y2 = PointViewMatrix(frame+1,j);
+                if(~isnan(x2))
+                    d = pdist([x1 y1; x2 y2],'euclidean');
+                
+                    if (d < min || min == 0)
+                        min = d;
+                    end
+                end
+            end
+            min_matrix(1,i) = min;
+            end
+        end
+        R = min_matrix;
+        idx = bsxfun(@gt, R,2* mean(R) + std(R)) | bsxfun(@lt, R, mean(R) - std(R));
+        idx = any(idx, 1);
+        PointViewMatrix(frame, idx) = 0;
+        PointViewMatrix(frame+1, idx) = 0;
+    end
+    
+    pvm = PointViewMatrix;
 end
