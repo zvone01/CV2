@@ -8,11 +8,11 @@ ransac = false;
 show = false;
 if any(strcmp(varargin, 'norm'))
     norm = true;
-    disp(['norm'])
+    %disp(['norm'])
 end
 if any(strcmp(varargin, 'ransac'))
     ransac = true;
-    disp(['ransac'])
+    %disp(['ransac'])
 end
 if any(strcmp(varargin, 'show'))
     show = true;
@@ -42,11 +42,19 @@ end
 
 if show
     % draw epipolar lines
-    draw_epipolar_lines(im1, im2, correspondences, F, 40);
+    draw_epipolar_lines(im1, im2, correspondences, F, 8);
     
     % check how well the epipolar constraint is met
     err = trace(correspondences(:,:,1)' * F * correspondences(:,:,2));
-    disp("deviation from epipolar constraint: "+num2str(err))  
+    if norm
+       if ransac
+           disp("optimisation using normalisation and RANSAC")
+       else
+           disp("optimisation using normalisation")
+       end
+    end
+    disp("deviation from epipolar constraint: "+num2str(err))
+    disp("")
 end
 
 end

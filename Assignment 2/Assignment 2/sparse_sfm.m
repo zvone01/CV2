@@ -1,133 +1,110 @@
 function total_pointcloud = sparse_sfm(pvm)
-
-% example pvm mat 
-% [ a b c ;
-%   d e f ;
-%   g h NaN ]
-
-% toy data
-% pvm = rand(10, 5);
-% %pvm(2, 2) = NaN;
-% pvm(9:10, 1) = NaN;
-% pvm(9:10, 5) = NaN;
-% pvm(1:2, 3) = NaN;
-% pvm(1:2, 5) = NaN;
-
-% pad pvm with NaNs at the right and at the bottom
-pvm = padarray(pvm, [ 1 1 ], NaN, 'post');
-
-% initialise variables
-total_pointcloud = 0;
-idx = 1; % the first point in the sub_pointcloud is the idx-th point in the total pointcloud
-
-% divide pvm into dense submatrices, extract 3D points and add to
-% pointcloud
-while size(pvm, 1) > 0 && size(pvm, 2) > 0
-
-    % find the stretch from top left to first NaN (right and down)
-    init_width = min(squeeze(find(isnan(pvm(1, :)))));
-    init_height = min(squeeze(find(isnan(pvm(:, 1)))));
-    
-    % find the submat
+    % example pvm mat 
     % [ a b c ;
-    %   d e f ]
-    height = init_height;
-    for i = 1 : init_width - 1
-        height = min(min(squeeze(find(isnan(pvm(:, i))))), height);
-    end    
-    dense_mat = pvm(1 : height-1, 1 : init_width-1);
-    %if all(size(dense_mat) > [6, 6] )
-     if (idx < (size(total_pointcloud, 2) - 6) || total_pointcloud == 0 ) && all(size(dense_mat) >= [4, 3])% make sure procrustes has overlap of at least 3
-        total_pointcloud = point_stiching(dense_mat, total_pointcloud, idx);
-     end
-    
-    % find the submat
-    % [ a b ;
-    %   d e ;
-    %   g h ]
-    width = init_width;
-    for i = 1 : init_height - 1
-        width = min(min(squeeze(find(isnan(pvm(i, :))))), width);
-    end
-    if height ~= init_height && width ~= init_width % if this submat hasnt already been found above
-        dense_mat = pvm(1 : init_height-1, 1 : width-1);
-        %if all(size(dense_mat) > [6, 6] )
-        if (idx < (size(total_pointcloud, 2) - 6) || total_pointcloud == 0 ) && all(size(dense_mat) >= [4, 3])
-            total_pointcloud = point_stiching(dense_mat, total_pointcloud, idx);
+    %   d e f ;
+    %   g h NaN ]
+
+    % pad pvm with NaNs at the right and at the bottom
+    pvm = padarray(pvm, [ 1 1 ], NaN, 'post');
+
+    % initialise variables
+    total_pointcloud = 0;
+    idx = 1; % the first point in the sub_pointcloud is the idx-th point in the total pointcloud
+
+    % divide pvm into dense submatrices, extract 3D points and add to
+    % pointcloud
+    %while size(pvm, 1) > 0 && size(pvm, 2) > 0
+    while all(size(pvm) > [0, 0])
+
+        % find the stretch from top left to first NaN (right and down)
+        init_width = min(squeeze(find(isnan(pvm(1, :)))));
+        init_height = min(squeeze(find(isnan(pvm(:, 1)))));
+
+        % find the submat
+        % [ a b c ;
+        %   d e f ]
+        height = init_height;
+        for i = 1 : init_width - 1
+            height = min(min(squeeze(find(isnan(pvm(:, i))))), height);
+        end    
+        dense_mat = pvm(1 : height-1, 1 : init_width-1);
+        total_pointcloud = point_stitching(total_pointcloud, dense_mat, idx);
+
+        % find the submat
+        % [ a b ;
+        %   d e ;
+        %   g h ]
+        width = init_width;
+        for i = 1 : init_height - 1
+            width = min(min(squeeze(find(isnan(pvm(i, :))))), width);
         end
-    end
+        if height ~= init_height && width ~= init_width % if this submat hasnt already been found above
+            dense_mat = pvm(1 : init_height-1, 1 : width-1);
+            total_pointcloud = point_stitching(total_pointcloud, dense_mat, idx);
+        end
 
-    % in the example:
-    % [ a b c NaN ;
-    %   d e f g ;
-    %   h i j k ;
-    % NaN l m n ]
-    %
-    % slice to obtain pvm for new iteration:
-    % [ e f g ;
-    %   i j k ;
-    %   l m n ]
-    if width == init_width
-        n_remove_row = min(squeeze(find(~isnan(pvm(:, width)))));
-    else
-        n_remove_row = min(squeeze(find(isnan(pvm(:, width)))));
-    end
-    if height == init_height
-        n_remove_col = min(squeeze(find(~isnan(pvm(height, :)))));
-    else
-        n_remove_col = min(squeeze(find(isnan(pvm(height, :)))));
-    end
-    if(isempty(n_remove_row))
-        n_remove_row  = 2;
-    end
-    if(isempty(n_remove_col))
-        n_remove_col = 2;
-    end
-    pvm = pvm( n_remove_row : size(pvm, 1) , n_remove_col : size(pvm, 2) );
-    idx = idx + n_remove_col - 1;
+        % in the example:
+        % [ a b c NaN ;
+        %   d e f g ;
+        %   h i j k ;
+        % NaN l m n ]
+        %
+        % slice to obtain pvm for new iteration:
+        % [ e f g ;
+        %   i j k ;
+        %   l m n ]
+        if width == init_width
+            n_remove_row = min(squeeze(find(~isnan(pvm(:, width))))) - 1;
+        else
+            n_remove_row = min(squeeze(find(isnan(pvm(:, width))))) - 1;
+        end
+        if height == init_height
+            n_remove_col = min(squeeze(find(~isnan(pvm(height, :))))) - 1;
+        else
+            n_remove_col = min(squeeze(find(isnan(pvm(height, :))))) - 1;
+        end
 
+        % take care of the cases
+        % [ NaN NaN NaN ;
+        %   a b c ;
+        %   d e f ]
+        %
+        % [ NaN a b ;
+        %   NaN c d ;
+        %   NaN e f ]
+        if(isempty(n_remove_row))
+            n_remove_row = 0;
+        end
+        if(isempty(n_remove_col))
+            n_remove_col = 0;
+        end
+        
+        % in case of 
+        % [ a b c NaN ;
+        %   d e f NaN ;
+        %   g h i NaN ;
+        % NaN NaN NaN NaN ]
+        % n_remove would not be found
+        if n_remove_row == 0 && n_remove_col == 0
+           if all(size(pvm) == [height, width])
+               n_remove_row = height;
+               n_remove_col = width;
+           else % last resort for any failure that prevents parsing
+               n_remove_col = 1;
+           end
+        end
+
+        % trim the pvm
+        pvm = pvm( (n_remove_row + 1) : size(pvm, 1) , (n_remove_col + 1) : size(pvm, 2) );
+        idx = idx + n_remove_col;
+
+    end
 end
+
+% ideas:
+% keep track of the indices somehow
+function pvm = purify(pvm)
+    % if there are columns or rows that are all-NaN, remove them.
+    pvm = pvm(all(~isnan(pvm),2),:); % for nan - rows
+    pvm = pvm(:, all(~isnan(pvm)));   % for nan - columns
 end
-
-function total_pointcloud = process_dense_mat(dense_mat, point_cloud, idx)
-    % find 3D points from dense matrix
-    [~, sub_pointcloud] = dense_sfm(dense_mat);
-    
-    % add 3D points to the total cloud
-    if point_cloud == 0
-        total_pointcloud = sub_pointcloud;
-    else
-        total_pointcloud = merge_cloud(point_cloud, sub_pointcloud, idx);
-    end
-
-end    
-
-function [motion, shape] = dense_sfm(PointViewMatrix)
-% mean of each row
-PointViewMatrix(1:2:end,:) = bsxfun(@minus, PointViewMatrix(1:2:end,:), mean(PointViewMatrix(1:2:end,:), 2));
-PointViewMatrix(2:2:end,:) = bsxfun(@minus, PointViewMatrix(2:2:end,:), mean(PointViewMatrix(2:2:end,:), 2));
-
-%compute svd
-[U W V] = svd(PointViewMatrix);
-
-% compute motion and shape
-motion = U(:, 1:3)*sqrt(W(1:3, 1:3)); 
-shape = sqrt(W(1:3, 1:3))*V(:, 1:3)';
-
-end
-
-
-%     heights = zeros(1, init_width - 1);
-%     for i = 1 : init_width
-%        heights(i) = min(squeeze(find(isnan(pvm(:, i))))); 
-%     end
-%     heights
-%     
-%     widths = zeros(1, init_height - 1);
-%     for i = 1 : init_height
-%         widths(i) = min(squeeze(find(isnan(pvm(i, :)))));
-%     end
-%     widths
-%     
-%     dense = pvm(1 : min(heights(1:init_width-1))-1, 1 : init_width - 1)
-%     dense = pvm(1 : init_height-1, 1 : min(widths(1:init_height-1))-1)
