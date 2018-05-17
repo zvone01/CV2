@@ -3,7 +3,7 @@ function c = keypoint_matching(im1, im2)
 [f2, d2] = vl_sift(im2); % find features in this image 
 
 % match features between the two images
-[matches, ~] = vl_ubcmatch(d1, d2, 4);
+[matches, ~] = vl_ubcmatch(d1, d2, 14);
 
 % gather the coordinate data of the relevant features
 indices_f1 = matches(1,:);
