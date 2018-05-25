@@ -1,5 +1,4 @@
-function c = filter_by_sampson_distance(data,F)
-
+function c = filter_by_sampson_distance(data, F)
 % threshold
 t = 0.025; 
 

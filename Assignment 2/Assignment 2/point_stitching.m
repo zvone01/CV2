@@ -5,30 +5,34 @@ function total_pointcloud = point_stitching(total_pointcloud, dense_submat, idx)
         % get 3D points from the dense submatrix
         [motion, shape] = dense_sfm(dense_submat);
         add_pointcloud = remove_affine_ambiguity(motion, shape);
-        %add_pointcloud = shape;
 
         % add 3D points to the total cloud
         if total_pointcloud == 0
             total_pointcloud = add_pointcloud;
         elseif idx <= size(total_pointcloud, 2) - 3 % procrustes needs at least 3 3D points
-            
             n_point_overlap = min([ size(total_pointcloud, 2) - idx + 1, size(add_pointcloud, 2) ]);
             
-            target = total_pointcloud(:, idx:idx+n_point_overlap-1);                        
             source = add_pointcloud(:, 1:n_point_overlap);
-                        
+            target = total_pointcloud(:, idx:idx+n_point_overlap-1);
+            
+            if size(source, 2) > size(target, 2)
+               swap = source;
+               source = target;
+               target = swap;
+            end
+            
             [~, ~, transform] = procrustes(target, source);
             c = transform.c; % translation
             T = transform.T; % rotation
             b = transform.b; % scaling
-                        
-            add_pointcloud = b*add_pointcloud*T + c;
             
-            % add all (or only points not-yet-present? whatabout
-            % interpolation?)
-            total_pointcloud = cat(2, total_pointcloud, add_pointcloud);
+            source_moved = b*source*T + c;
             
-            %disp(['succesfull stitch'])
+            if size(add_pointcloud, 2) > size(total_pointcloud, 2) - idx + 1
+                total_pointcloud = cat(2, target, source_moved);
+            else
+                total_pointcloud = cat(2, total_pointcloud, source_moved);
+            end     
         end
     end
 end

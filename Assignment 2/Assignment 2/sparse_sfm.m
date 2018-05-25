@@ -100,11 +100,3 @@ function total_pointcloud = sparse_sfm(pvm)
 
     end
 end
-
-% ideas:
-% keep track of the indices somehow
-function pvm = purify(pvm)
-    % if there are columns or rows that are all-NaN, remove them.
-    pvm = pvm(all(~isnan(pvm),2),:); % for nan - rows
-    pvm = pvm(:, all(~isnan(pvm)));   % for nan - columns
-end

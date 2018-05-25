@@ -1,4 +1,4 @@
-function [F, correspondences] = get_fundamental_mat(im1, im2, varargin)
+function [F, correspondences] = get_fundamental_mat(im1, im2, t, varargin)
 % hyperparameters
 s = 20;
 
@@ -19,7 +19,7 @@ if any(strcmp(varargin, 'show'))
 end
 
 % retrieve point correspondences by evaluating SIFT features
-correspondences = keypoint_matching(im1, im2);
+correspondences = keypoint_matching(im1, im2, t);
 
 % perform normalisation yes or no
 if norm

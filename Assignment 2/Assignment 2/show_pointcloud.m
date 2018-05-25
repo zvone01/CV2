@@ -1,7 +1,7 @@
 function show_pointcloud(pc)
     x = pc(1,:);
     y = pc(2,:);
-    z = pc(3,:);
+    z = -pc(3,:);
 
     tri = delaunay(x, y);
     

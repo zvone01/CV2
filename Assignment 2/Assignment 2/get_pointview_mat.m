@@ -1,4 +1,4 @@
-function PointViewMatrix = get_pointview_mat(dir_to_search,varargin)
+function PointViewMatrix = get_pointview_mat(dir_to_search, t, varargin)
 txtpattern = fullfile(dir_to_search, '*.png');
 dinfo = dir(txtpattern);
 Xs = [];
@@ -6,14 +6,13 @@ Ys = [];
 
 % set various booleans
 sampson = false;
-otliers = false;
+outliers = false;
 
 if any(strcmp(varargin, 'sampson'))
     sampson = true;
 end
-if any(strcmp(varargin, 'otliers'))
-    otliers = true;
-    %disp(['ransac'])
+if any(strcmp(varargin, 'geo_outlier'))
+    outliers = true;
 end
 
 % loop trought every pair of images,
@@ -24,10 +23,10 @@ for i = 1 : size(dinfo,1) - 1
     
     % get corresponding points
     if sampson
-        [F, c] = get_fundamental_mat(im1, im2, 'ransac');
-        c = filter_by_sampson_distance(c,F);
+        [F, c] = get_fundamental_mat(im1, im2, t, 'norm', 'ransac');
+        c = filter_by_sampson_distance(c, F);
     else
-        c = keypoint_matching(im1, im2);
+        c = keypoint_matching(im1, im2, t);
     end
     % remove double correspondences
     [C, ia, ic]= unique(c(1:2,:,1)','rows','stable');
@@ -56,11 +55,8 @@ for i = 1 : size(dinfo,1) - 1
             
             Xs(i+1,end) = c2(1,a);
             Ys(i+1,end) = c2(2,a);
-        end
-        
-    end
-    
-    
+        end        
+    end   
 end
 
 %
@@ -77,14 +73,15 @@ PointViewMatrix(2:2:end) = Ys;
 PointViewMatrix(PointViewMatrix==0) = NaN;
 
 %remove outliers
-if otliers
-    remove_otliers(PointViewMatrix)
+if outliers
+    pvm = remove_outliers(PointViewMatrix);
+    PointViewMatrix = pvm(:,any(~isnan(pvm)));
 end
 
 end
 
 
-function pvm = remove_otliers(PointViewMatrix)
+function pvm = remove_outliers(PointViewMatrix)
 
 for frame=1:2:size(PointViewMatrix,1)
     min_matrix = zeros(1,size(PointViewMatrix(~isnan(PointViewMatrix(frame,:))),2));
@@ -110,7 +107,7 @@ for frame=1:2:size(PointViewMatrix,1)
         end
     end
     R = min_matrix;
-    idx = bsxfun(@gt, R,2* mean(R) + std(R)) | bsxfun(@lt, R, mean(R) - std(R));
+    idx = bsxfun(@gt, R, mean(R) + std(R));
     idx = any(idx, 1);
     PointViewMatrix(frame, idx) = 0;
     PointViewMatrix(frame+1, idx) = 0;
