@@ -75,9 +75,14 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformPointCloud(pcl::PointCloud<pcl::
     return transformed_cloud;
 }
 
+pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr transformPointCloudNormal(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud, const Eigen::Matrix4f& transform) {
+    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr transformed_cloud(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
+    pcl::transformPointCloudWithNormals(*cloud, *transformed_cloud, transform);
+    return transformed_cloud;
+}
 
 template<class T>
-typename pcl::PointCloud<T>::Ptr transformPointCloudNormals(typename pcl::PointCloud<T>::Ptr cloud, const Eigen::Matrix4f& transform) {
+typename pcl::PointCloud<T>::Ptr transformPointCloudNormal(typename pcl::PointCloud<T>::Ptr cloud, const Eigen::Matrix4f& transform) {
     typename pcl::PointCloud<T>::Ptr transformed_cloud(new typename pcl::PointCloud<T>());
     pcl::transformPointCloudWithNormals(*cloud, *transformed_cloud, transform);
     return transformed_cloud;
@@ -101,23 +106,23 @@ pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr mergingPointClouds(Frame3D frames[]
 		std::cout << "7: point cloud   depthToPointCloud(depth image, focal length)" << std::endl;
 		pcl::PointCloud<pcl::PointXYZ>::Ptr point_cloud = mat2IntegralPointCloud(depthImage, focalLength, max_depth);
 
-		
+
 		//8: point cloud with normals   computeNormals(point cloud)
 		std::cout << "8: point cloud with normals   computeNormals(point cloud)" << std::endl;
-		pcl::PointCloud<pcl::PointNormal>::Ptr point_cloud_normals = computeNormals(*point_cloud);
+		pcl::PointCloud<pcl::PointNormal>::Ptr point_cloud_normals = computeNormals(point_cloud);
 
 		//force gray point cloud
 		std::cout << "8.5 force gray point cloud" << std::endl;
-		pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_cloud_gray(new pcl::PointCloud<pcl::PointXYZRGB>);
+		pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr point_cloud_gray(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
 		pcl::copyPointCloud(*point_cloud_normals, *point_cloud_gray);
-		/*
-		//9: point cloud with normals   transformPointCloud(point cloud with normals, camera pose)
-		std::cout << "9: point cloud with normals   transformPointCloud(point cloud with normals, camera pose)" << std::endl;
-		pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr point_cloud_normals_moved = transformPointCloud(point_cloud_normals, cameraPose);
 
-		
+		//9: point cloud with normals   transformPointCloud(point cloud with normals, camera pose)
+		std::cout << "9: point cloud with normals   transformPointCloudNormals(point cloud with normals, camera pose)" << std::endl;
+    // pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr point_cloud_normals_moved(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
+		pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr point_cloud_normals_moved = transformPointCloudNormal(point_cloud_gray, cameraPose);
+
 		//10: model point cloud   concatPointClouds(model point cloud, point cloud with normals)
-		pcl::concatenatePointCloud(modelCloud, point_cloud_normals_moved, &modelCloud);*/
+		// modelCloud = point_cloud_normals_moved + modelCloud;
 	}
 
     return modelCloud;
@@ -153,7 +158,7 @@ pcl::PolygonMesh createMesh(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr pointCl
     switch (method) {
         case PoissonSurfaceReconstruction:
             // TODO(Student): Call Poisson Surface Reconstruction. ~ 5 lines.
-			
+
             break;
         case MarchingCubes:
             // TODO(Student): Call Marching Cubes Surface Reconstruction. ~ 5 lines.
