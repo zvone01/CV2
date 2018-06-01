@@ -89,6 +89,7 @@ typename pcl::PointCloud<T>::Ptr transformPointCloudNormal(typename pcl::PointCl
 }
 
 pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr mergingPointClouds(Frame3D frames[]) {
+
     pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr modelCloud(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
 
     for (int i = 0; i < 8; i++) {
@@ -116,13 +117,16 @@ pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr mergingPointClouds(Frame3D frames[]
 		pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr point_cloud_gray(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
 		pcl::copyPointCloud(*point_cloud_normals, *point_cloud_gray);
 
+		//Remove NaNs
+		std::vector<int> index;
+		pcl::removeNaNNormalsFromPointCloud(*point_cloud_gray, *point_cloud_gray, index);
 		//9: point cloud with normals   transformPointCloud(point cloud with normals, camera pose)
 		std::cout << "9: point cloud with normals   transformPointCloudNormals(point cloud with normals, camera pose)" << std::endl;
     // pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr point_cloud_normals_moved(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
 		pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr point_cloud_normals_moved = transformPointCloudNormal(point_cloud_gray, cameraPose);
 
 		//10: model point cloud   concatPointClouds(model point cloud, point cloud with normals)
-		// modelCloud = point_cloud_normals_moved + modelCloud;
+		*modelCloud += *point_cloud_normals_moved ;
 	}
 
     return modelCloud;
@@ -130,6 +134,7 @@ pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr mergingPointClouds(Frame3D frames[]
 
 
 pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr mergingPointCloudsWithTexture(Frame3D frames[]) {
+
     pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr modelCloud(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
 
     for (int i = 0; i < 8; i++) {
@@ -141,6 +146,18 @@ pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr mergingPointCloudsWithTexture(Frame
         const Eigen::Matrix4f cameraPose = frame.getEigenTransform();
 
         // TODO(Student): The same as mergingPointClouds but now with texturing. ~ 50 lines.
+		
+		//8: transformed point cloud   transformPointCloud(point cloud, camera pose.inverse())
+		//pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr point_cloud_normals_moved = transformPointCloudNormal(point_cloud_gray, cameraPose.inverse());
+		
+		//9: for polygon in polygons do
+
+			//10: if polygon visible to this camera then
+				//11: uv coordinates   getUVCoordinates(polygon, transformed point cloud)
+				//12: assign uv coordinates of this camera to the polygon
+			//13: end if
+		//14 : end for
+		
     }
 
     return modelCloud;
@@ -151,18 +168,32 @@ enum CreateMeshMethod { PoissonSurfaceReconstruction = 0, MarchingCubes = 1};
 
 // Create mesh from point cloud using one of above methods
 pcl::PolygonMesh createMesh(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr pointCloud, CreateMeshMethod method) {
-    std::cout << "Creating meshes" << std::endl;
+    
+	std::cout << "Creating meshes" << std::endl;
 
     // The variable for the constructed mesh
     pcl::PolygonMesh triangles;
-    switch (method) {
-        case PoissonSurfaceReconstruction:
-            // TODO(Student): Call Poisson Surface Reconstruction. ~ 5 lines.
+	switch (method) {
+			case PoissonSurfaceReconstruction:
+			{
+				// TODO(Student): Call Poisson Surface Reconstruction. ~ 5 lines.
+				pcl::Poisson<pcl::PointXYZRGBNormal> poisson;
+				poisson.setInputCloud(pointCloud);
+				//TODO: add parameters
+				poisson.reconstruct(triangles);
+			}
+            break;
 
-            break;
         case MarchingCubes:
-            // TODO(Student): Call Marching Cubes Surface Reconstruction. ~ 5 lines.
-            break;
+			{
+				// TODO(Student): Call Marching Cubes Surface Reconstruction. ~ 5 lines.
+				pcl::MarchingCubes<pcl::PointXYZRGBNormal> *mc = new pcl::MarchingCubesHoppe<pcl::PointXYZRGBNormal>();
+				mc->setInputCloud(pointCloud);
+				//TODO: add parameters
+				mc->reconstruct(triangles);
+			}
+			break; 
+		
     }
     return triangles;
 }
